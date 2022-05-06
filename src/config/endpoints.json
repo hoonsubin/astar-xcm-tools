@@ -1,0 +1,14 @@
+{
+    "relaychain": {
+        "polkadot": "wss://rpc.polkadot.io",
+        "kusama": "wss://kusama-rpc.polkadot.io",
+        "osaka": "wss://osaka.astar.network",
+        "local": "ws://localhost:9944"
+    },
+    "parachain": {
+        "astar": "wss://wss.astar.network",
+        "shibuya": "wss://rpc.shibuya.astar.network",
+        "shiden": "wss://rpc.shiden.astar.network",
+        "local": "ws://localhost:9944"
+    }
+}

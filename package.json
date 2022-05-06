@@ -1,0 +1,23 @@
+{
+  "name": "astar-xcm-tool",
+  "version": "1.0.0",
+  "description": "XCM package for Astar Network",
+  "lib": "src/index.ts",
+  "license": "MIT",
+  "scripts": {
+    "start": "ts-node-dev -r dotenv/config src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "dotenv": "^16.0.0",
+    "prettier": "^2.6.1",
+    "ts-node": "^10.7.0",
+    "ts-node-dev": "^1.1.8",
+    "typescript": "^4.6.3"
+  },
+  "dependencies": {
+    "@polkadot/api": "^7.14.3",
+    "@polkadot/util": "^8.7.1",
+    "@polkadot/util-crypto": "^8.7.1"
+  }
+}
