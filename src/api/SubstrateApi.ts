@@ -8,19 +8,26 @@ import {
     MultiLocation,
     AssetMetadata,
     AssetDetails,
-    AssetId,
+    MultiAsset,
 } from '@polkadot/types/interfaces';
 import { mnemonicGenerate } from '@polkadot/util-crypto';
 import { Keyring } from '@polkadot/keyring';
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
 import { ExtrinsicPayload, ChainProperty, ChainAsset } from '../types';
+import { decodeAddress } from '@polkadot/util-crypto';
 
 const AUTO_CONNECT_MS = 10_000; // [ms]
 
 interface IXcmChain {
     xcmExecute: (message: VersionedXcm, maxWeight: BN) => ExtrinsicPayload;
     xcmSend: (dest: MultiLocation, message: VersionedXcm) => ExtrinsicPayload;
+    xcmReserveTransferAsset: (
+        dest: MultiLocation,
+        beneficiary: MultiLocation,
+        assets: MultiAsset,
+        feeAssetItem: BN,
+    ) => ExtrinsicPayload;
 }
 
 interface IChainAccount {
@@ -140,6 +147,10 @@ class ChainApi {
         return ((await this._api?.query.system.account(account.pair.address)) as any)?.nonce.toNumber();
     }
 
+    public async getBalance(account: ChainAccount) {
+        return ((await this._api?.query.system.account(account.pair.address)) as any).data.free.toBn() as BN;
+    }
+
     public async signAndSend(signer: ChainAccount, tx: ExtrinsicPayload, options?: Partial<SignerOptions>) {
         // ensure that we automatically increment the nonce per transaction
         return await tx.signAndSend(signer.pair, { nonce: -1, ...options }, (result) => {
@@ -204,6 +215,13 @@ export class ParachainApi extends ChainApi implements IXcmChain {
         return this.buildTxCall('polkadotXcm', 'send', dest, message);
     }
 
+    xcmReserveTransferAsset: (
+        dest: MultiLocation,
+        beneficiary: MultiLocation,
+        assets: MultiAsset,
+        feeAssetItem: BN,
+    ) => ExtrinsicPayload;
+
     public async fetchAssets() {
         // note that this function requires the chain to implement the Assets pallet
 
@@ -252,6 +270,61 @@ export class RelaychainApi extends ChainApi implements IXcmChain {
 
         this._parachains = parachains.map((i) => i.toNumber());
         // check if the connected network implements xcmPallet
+    }
+
+    public transferToParachain(toPara: number, recipientAccountId: string, amount: BN) {
+        // the target parachain connected to the current relaychain
+        const dest = {
+            V1: {
+                interior: {
+                    X1: {
+                        Parachain: new BN(toPara),
+                    },
+                },
+                parents: new BN(0),
+            },
+        };
+        // the account ID within the destination parachain
+        const beneficiary = {
+            V1: {
+                interior: {
+                    X1: {
+                        AccountId32: {
+                            network: 'Any',
+                            id: decodeAddress(recipientAccountId),
+                        },
+                    },
+                },
+                parents: new BN(0),
+            },
+        };
+        // amount of fungible tokens to be transferred
+        const assets = {
+            V1: [
+                {
+                    fun: {
+                        Fungible: amount,
+                    },
+                    id: {
+                        Concrete: {
+                            interior: 'Here',
+                            parents: new BN(0),
+                        },
+                    },
+                },
+            ],
+        };
+
+        return this.buildTxCall('xcmPallet', 'reserveTransferAssets', dest, beneficiary, assets, new BN(0));
+    }
+
+    public xcmReserveTransferAsset(
+        dest: MultiLocation,
+        beneficiary: MultiLocation,
+        assets: MultiAsset,
+        feeAssetItem: BN,
+    ) {
+        return this.buildTxCall('xcmPallet', 'reserveTransferAssets', dest, beneficiary, assets, feeAssetItem);
     }
 
     public xcmExecute(message: VersionedXcm, maxWeight: BN) {
