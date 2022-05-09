@@ -25,15 +25,16 @@ export default async function app() {
     console.log(assets);
 
     // send tokens from the relaychain to the parachain
-    const amount = new BN(10).pow(new BN(relayApi.chainProperty.tokenDecimals[0]));
+    const amount = new BN(10).pow(new BN(relayApi.chainProperty.tokenDecimals[0])).divn(10);
 
-    //await dmpTest(amount, paraApi, relayApi, account);
-    await umpTest(amount, paraApi, account);
+    await dmpTest(amount, paraApi, relayApi, account);
+    //await umpTest(amount, paraApi, account);
 
     const balance = await relayApi.getBalance(account);
     console.log(`${account.pair.address} has a balance of ${balance.toString()} ${relayApi.chainProperty.tokenSymbols[0]}`);
 
     //todo: test asset bridging from relaychain to parachain (UMP, DMP), test asset bridging from parachain to parachain (HRMP)
+    //todo: test XC20 interaction and bridging
     //todo: create a parachain multiLocation abstraction (like a URL for parachains)
 
     // we need this to exit out of polkadot-js/api instance
@@ -44,7 +45,7 @@ const dmpTest = async (amount: BN, parachain: ParachainApi, relaychain: Relaycha
     //account.formatAccount(relaychain.chainProperty);
     //console.log(``);
 
-    const dmpTxCall = relaychain.transferToParachain(parachain.paraId, account.pair.address, amount)
+    const dmpTxCall = relaychain.transferToParachain(parachain.paraId, 'WiXgBpydd4zskFmEZDDvob5fKDVqjBUdnukZ9zng7NXLQZo', amount)
     await relaychain.signAndSend(account, dmpTxCall);
 }
 
