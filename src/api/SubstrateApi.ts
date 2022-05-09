@@ -10,12 +10,11 @@ import {
     AssetDetails,
     MultiAsset,
 } from '@polkadot/types/interfaces';
-import { mnemonicGenerate } from '@polkadot/util-crypto';
-import { Keyring } from '@polkadot/keyring';
-import { KeyringPair } from '@polkadot/keyring/types';
+import { ChainAccount } from './Account';
 import BN from 'bn.js';
 import { ExtrinsicPayload, ChainProperty, ChainAsset } from '../types';
 import { decodeAddress } from '@polkadot/util-crypto';
+import Web3 from 'web3';
 
 const AUTO_CONNECT_MS = 10_000; // [ms]
 
@@ -30,29 +29,10 @@ interface IXcmChain {
     ) => ExtrinsicPayload;
 }
 
-interface IChainAccount {
-    pair: KeyringPair;
-    keyring: Keyring;
-}
-
-export class ChainAccount implements IChainAccount {
-    private _keyring: Keyring;
-    private _mnemonic: string;
-
-    constructor(mnemonic: string) {
-        this._keyring = new Keyring({ type: 'sr25519' });
-
-        // create a random account if no mnemonic was provided
-        this._mnemonic = mnemonic || mnemonicGenerate();
-    }
-
-    public get pair() {
-        return this._keyring.addFromUri(this._mnemonic, { name: 'Default' }, 'sr25519');
-    }
-
-    public get keyring() {
-        return this._keyring;
-    }
+// WIP
+interface IEvmChain {
+    evmApiInst: Web3;
+    start: () => Promise<void>;
 }
 
 class ChainApi {
@@ -92,6 +72,8 @@ class ChainApi {
 
         const chainProperties = await this._api.rpc.system.properties();
 
+        const ss58Prefix = parseInt((await this._api.consts.system.ss58Prefix).toString() || '0');
+
         const tokenDecimals = chainProperties.tokenDecimals
             .unwrapOrDefault()
             .toArray()
@@ -110,6 +92,7 @@ class ChainApi {
             tokenSymbols,
             tokenDecimals,
             chainName,
+            ss58Prefix,
         };
         //const ss58Format = chainProperties.ss58Format.unwrapOrDefault().toNumber();
         //this._keyring.setSS58Format(ss58Format);
@@ -215,12 +198,56 @@ export class ParachainApi extends ChainApi implements IXcmChain {
         return this.buildTxCall('polkadotXcm', 'send', dest, message);
     }
 
-    xcmReserveTransferAsset: (
+    public xcmReserveTransferAsset(
         dest: MultiLocation,
         beneficiary: MultiLocation,
         assets: MultiAsset,
         feeAssetItem: BN,
-    ) => ExtrinsicPayload;
+    ) {
+        return this.buildTxCall('polkadotXcm', 'reserveTransferAssets', dest, beneficiary, assets, feeAssetItem);
+    }
+
+    public transferToRelaychain(recipientAccountId: string, amount: BN) {
+        // the relaychain that the current parachain is connected to
+        const dest = {
+            V1: {
+                interior: 'Here',
+                parents: new BN(1),
+            },
+        };
+        // the account ID within the relaychain
+        const beneficiary = {
+            V1: {
+                interior: {
+                    X1: {
+                        AccountId32: {
+                            network: 'Any',
+                            id: decodeAddress(recipientAccountId),
+                        },
+                    },
+                },
+                parents: new BN(0),
+            },
+        };
+        // amount of fungible tokens to be transferred
+        const assets = {
+            V1: [
+                {
+                    fun: {
+                        Fungible: amount,
+                    },
+                    id: {
+                        Concrete: {
+                            interior: 'Here',
+                            parents: new BN(1),
+                        },
+                    },
+                },
+            ],
+        };
+
+        return this.buildTxCall('polkadotXcm', 'reserveTransferAssets', dest, beneficiary, assets, new BN(0));
+    }
 
     public async fetchAssets() {
         // note that this function requires the chain to implement the Assets pallet

@@ -1,13 +1,13 @@
-import { ParachainApi, RelaychainApi, ChainAccount } from './api/SubstrateApi';
+import { ParachainApi, RelaychainApi, ChainAccount } from './api';
 import endpoints from './config/endpoints.json';
-import { BN } from 'bn.js';
+import BN from 'bn.js';
 
 import '@polkadot/types-augment';
 
 export default async function app() {
     // initialize the account
     const accountSecret = process.env.SUBSTRATE_MNEMONIC || '//Alice';
-    const account = new ChainAccount(accountSecret);
+    const account = new ChainAccount(accountSecret, 'sr25519');
 
     // initialize the relaychain instance
     const relayApi = new RelaychainApi(endpoints.relaychain.kusama);
@@ -26,8 +26,9 @@ export default async function app() {
 
     // send tokens from the relaychain to the parachain
     const amount = new BN(10).pow(new BN(relayApi.chainProperty.tokenDecimals[0]));
-    const dmpTxCall = relayApi.transferToParachain(paraApi.paraId, account.pair.address, amount)
-    await relayApi.signAndSend(account, dmpTxCall);
+
+    //await dmpTest(amount, paraApi, relayApi, account);
+    await umpTest(amount, paraApi, account);
 
     const balance = await relayApi.getBalance(account);
     console.log(`${account.pair.address} has a balance of ${balance.toString()} ${relayApi.chainProperty.tokenSymbols[0]}`);
@@ -37,4 +38,18 @@ export default async function app() {
 
     // we need this to exit out of polkadot-js/api instance
     process.exit(0);
+}
+
+const dmpTest = async (amount: BN, parachain: ParachainApi, relaychain: RelaychainApi, account: ChainAccount) => {
+    //account.formatAccount(relaychain.chainProperty);
+    //console.log(``);
+
+    const dmpTxCall = relaychain.transferToParachain(parachain.paraId, account.pair.address, amount)
+    await relaychain.signAndSend(account, dmpTxCall);
+}
+
+const umpTest = async (amount: BN, parachain: ParachainApi, account: ChainAccount) => {
+    console.log(`Sending ${amount.toString()} from ${parachain.chainProperty.chainName} to its relaychain`)
+    const umpTxCall = parachain.transferToRelaychain(account.pair.address, amount);
+    await parachain.signAndSend(account, umpTxCall);
 }
