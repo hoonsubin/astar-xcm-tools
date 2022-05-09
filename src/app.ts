@@ -45,7 +45,7 @@ const dmpTest = async (amount: BN, parachain: ParachainApi, relaychain: Relaycha
     //account.formatAccount(relaychain.chainProperty);
     //console.log(``);
 
-    const dmpTxCall = relaychain.transferToParachain(parachain.paraId, 'WiXgBpydd4zskFmEZDDvob5fKDVqjBUdnukZ9zng7NXLQZo', amount)
+    const dmpTxCall = relaychain.transferToParachain(parachain.paraId, account.pair.address, amount)
     await relaychain.signAndSend(account, dmpTxCall);
 }
 
