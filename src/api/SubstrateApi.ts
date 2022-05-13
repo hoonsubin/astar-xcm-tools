@@ -207,6 +207,7 @@ export class ParachainApi extends ChainApi implements IXcmChain {
         return this.buildTxCall('polkadotXcm', 'reserveTransferAssets', dest, beneficiary, assets, feeAssetItem);
     }
 
+    // note: this function is not working correctly!
     public transferToRelaychain(recipientAccountId: string, amount: BN) {
         // the relaychain that the current parachain is connected to
         const dest = {

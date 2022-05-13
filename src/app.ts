@@ -25,9 +25,11 @@ export default async function app() {
     console.log(assets);
 
     // send tokens from the relaychain to the parachain
-    const amount = new BN(10).pow(new BN(relayApi.chainProperty.tokenDecimals[0])).divn(10);
+    const amount = new BN(10).pow(new BN(relayApi.chainProperty.tokenDecimals[0]));
 
-    await dmpTest(amount, paraApi, relayApi, account);
+    //note: uncomment one of these functions
+
+    //await dmpTest(amount, paraApi, relayApi, account);
     //await umpTest(amount, paraApi, account);
 
     const balance = await relayApi.getBalance(account);
