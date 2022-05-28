@@ -247,7 +247,7 @@ export class ParachainApi extends ChainApi implements IXcmChain {
             ],
         };
 
-        return this.buildTxCall('polkadotXcm', 'reserveTransferAssets', dest, beneficiary, assets, new BN(0));
+        return this.buildTxCall('polkadotXcm', 'reserveWithdrawAssets', dest, beneficiary, assets, new BN(0));
     }
 
     public async fetchAssets() {
