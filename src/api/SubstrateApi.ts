@@ -9,6 +9,7 @@ import {
     AssetMetadata,
     AssetDetails,
     MultiAsset,
+    AssetBalance
 } from '@polkadot/types/interfaces';
 import { ChainAccount } from './Account';
 import BN from 'bn.js';
@@ -248,6 +249,11 @@ export class ParachainApi extends ChainApi implements IXcmChain {
         };
 
         return this.buildTxCall('polkadotXcm', 'reserveWithdrawAssets', dest, beneficiary, assets, new BN(0));
+    }
+
+    public async getAssetBalance(assetId: BN, account: ChainAccount) {
+        const assetBalance = await this.buildStorageQuery('assets', 'account', assetId, account.pair.address);
+        return assetBalance as AssetBalance;
     }
 
     public async fetchAssets() {
