@@ -1,2 +1,2 @@
-export * from './Account';
-export * from './SubstrateApi';
+export * from './account';
+export * from './substrateApi';
