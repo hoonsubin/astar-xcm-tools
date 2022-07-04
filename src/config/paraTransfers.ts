@@ -6,11 +6,11 @@ import { ExtrinsicPayload } from '../types';
 const astarAssetToRelay = (
     api: ChainApi,
     amount: BN,
-    assetType: 'native' | { assetId: string },
+    assetId: string,
     paraId: number,
     recipientAccountId: string,
 ): ExtrinsicPayload => {
-    if (assetType !== 'native') {
+    if (assetId !== 'native') {
         throw new Error('You can only send native tokens to the relay chain');
     }
 
@@ -45,7 +45,7 @@ const astarAssetToRelay = (
                 id: {
                     Concrete: {
                         interior: 'Here',
-                        parents: new BN(1),
+                        parents: new BN(0),
                     },
                 },
             },
@@ -59,7 +59,7 @@ const astarAssetToRelay = (
 const astarAssetToParaId = (
     api: ChainApi,
     amount: BN,
-    assetType: 'native' | { assetId: string },
+    assetId: string,
     paraId: number,
     recipientAccountId: string,
 ): ExtrinsicPayload => {
@@ -91,8 +91,8 @@ const astarAssetToParaId = (
 
     // note that not all assets will be accepted by the other chain. There is no generic check for this yet
 
-    const assetId =
-        assetType === 'native'
+    const asset =
+        assetId === 'native'
             ? {
                   Concrete: {
                       interior: 'Here',
@@ -102,7 +102,7 @@ const astarAssetToParaId = (
             : {
                   X2: {
                       Parachain: new BN(paraId),
-                      GeneralKey: assetType.assetId,
+                      GeneralKey: assetId, // todo: find a way to fetch the asset ID based on the symbol
                   },
               };
 
@@ -113,20 +113,34 @@ const astarAssetToParaId = (
                 fun: {
                     Fungible: amount,
                 },
-                id: assetId,
+                id: asset,
             },
         ],
     };
     return api.buildTxCall('polkadotXcm', 'reserveWithdrawAssets', dest, beneficiary, assets, new BN(0));
 };
 
+/**
+ * Send a currency from Acala to a specified parachain.
+ * @param api An api instance that is connected to the Acala node endpoint
+ * @param amount The amount of token you wish to send
+ * @param assetId The asset ID (or the symbol in this case) that should be transferred
+ * @param paraId The paraId of the target chain
+ * @param recipientAccountId The recipient's SS58 address
+ * @returns 
+ */
 const acalaToParaId = (
     api: ChainApi,
     amount: BN,
-    assetType: 'native' | { assetId: string },
+    assetId: string,
     paraId: number,
     recipientAccountId: string,
 ): ExtrinsicPayload => {
+    
+    const currencyId = {
+        Token: assetId, // todo: fix this so it can read from a generic asset ID instead of known symbols
+    };
+
     // todo; define the args
     const dest = {
         V1: {
@@ -146,7 +160,12 @@ const acalaToParaId = (
             },
         },
     };
-    return api.buildTxCall('xTokens', 'transferMultiAssets');
+
+    // each XCM instruction is weighted to be 1_000_000_000 units of weight and for this op to execute
+    // weight value of 5 * 10^9 is generally good
+    const destWeight = (new BN(10).pow(new BN(9))).muln(5);
+
+    return api.buildTxCall('xTokens', 'transferMultiAssets', currencyId, amount, dest, destWeight);
 };
 
 export const paraTransfers = [astarAssetToParaId, acalaToParaId];

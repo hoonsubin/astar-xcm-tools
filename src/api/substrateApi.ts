@@ -13,21 +13,18 @@ import {
 } from '@polkadot/types/interfaces';
 import { ChainAccount } from './account';
 import BN from 'bn.js';
-import { ExtrinsicPayload, ChainProperty, ChainAsset } from '../types';
+import { ExtrinsicPayload, ChainProperty, ChainAsset, TransferToPara } from '../types';
 import { decodeAddress } from '@polkadot/util-crypto';
 
 const AUTO_CONNECT_MS = 10_000; // [ms]
 
-type TransferToPara = (
-        api: ChainApi,
-        amount: BN,
-        assetType: 'native' | { assetId: string },
-        paraId: number,
-        recipientAccountId: string,
-    ) => ExtrinsicPayload;
-
 export interface IXcmChain {
-    transferToParachain: (recipientAccountId: string, amount: BN, paraId: number, transferFunc: TransferToPara) => ExtrinsicPayload;
+    transferToParachain: (
+        recipientAccountId: string,
+        amount: BN,
+        paraId: number,
+        transferFunc: TransferToPara,
+    ) => ExtrinsicPayload;
     transferToRelaychain: (recipientAccountId: string, amount: BN, transferFunc: TransferToPara) => ExtrinsicPayload;
 }
 
@@ -211,8 +208,6 @@ export class ParachainApi extends ChainApi implements IXcmChain {
     public transferToParachain(recipientAccountId: string, amount: BN, paraId: number, transferFunc: TransferToPara) {
         return transferFunc(this, amount, 'native', paraId, recipientAccountId);
     }
-
-    
 }
 
 export class RelaychainApi extends ChainApi {

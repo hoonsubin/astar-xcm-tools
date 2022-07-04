@@ -1,4 +1,4 @@
-import { ParachainApi, RelaychainApi, ChainAccount } from './api';
+import { AstarApi, RelaychainApi, ChainAccount } from './api';
 import BN from 'bn.js';
 import endpoints from './config/endpoints.json';
 import '@polkadot/types-augment';
@@ -24,7 +24,7 @@ const astarRelaychainTx = async () => {
     await relayApi.start();
 
     // initialize the parachain instance
-    const paraApi = new ParachainApi(endpoints.parachain.astar);
+    const paraApi = new AstarApi(endpoints.parachain.astar);
     await paraApi.start();
     
     console.log(`${paraApi.chainProperty.chainName} Parachain has Parachain ID ${paraApi.paraId}`);
