@@ -79,7 +79,7 @@ const astarAssetToParaId = (
         V1: {
             interior: {
                 X1: {
-                    AccountId32: {
+                    AccountId32: { // the account ID will be AccountKey20 for EVM based chains
                         network: 'Any',
                         id: decodeAddress(recipientAccountId),
                     },
