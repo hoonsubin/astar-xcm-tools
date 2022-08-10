@@ -21,3 +21,8 @@ export type TransferToPara = (
     paraId: number,
     recipientAccountId: string,
 ) => ExtrinsicPayload;
+
+export interface TransferItem {
+  account: string;
+  amount: string;
+}
