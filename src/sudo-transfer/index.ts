@@ -7,6 +7,7 @@ import BN from 'bn.js';
 import SubstrateApi from './SubstrateApi';
 
 const ASTAR_ASSET_ID = '340282366920938463463374607431768211455';
+const execute_fee = new BN(4000000);
 
 export default async function index() {
   const senderKey = process.env.SUBSTRATE_MNEMONIC || '//Alice';
@@ -15,26 +16,26 @@ export default async function index() {
   try {
     await api.start();
   } catch (e) {
-    console.error('error', e)
+    console.error('error', e);
   }
 
-  const allExtrinsics = (await utils.readJson('./extrinsics.json')) as TransferItem[]
-  const chunks = 100
+  const allExtrinsics = (await utils.readJson('./extrinsics.json')) as TransferItem[];
+  const chunks = 100;
 
   const assetId = ASTAR_ASSET_ID;
 
   const batchMint = allExtrinsics.map((item) => {
-    const beneficiary = item.account
-    const amount = new BN(item.amount)
+    const beneficiary = item.account;
+    const amount = new BN(item.amount).sub(execute_fee);
 
-    return api.wrapSudo(api.buildTxCall('assets', 'mint', new BN(assetId), {
+    return api.buildTxCall('assets', 'mint', new BN(assetId), {
       'Address32': beneficiary
-    }, amount))
+    }, amount);
   })
   
   const splitTx = utils.splitListIntoChunks(batchMint, chunks);
   const batchCalls = splitTx.map((i) => {
-    return api.wrapBatchAll(i);
+    return api.wrapSudo(api.wrapBatchAll(i));
   });
 
   console.log(`There are ${batchCalls.length} batch calls`);
