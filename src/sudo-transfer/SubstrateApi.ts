@@ -122,6 +122,14 @@ export default class SubstrateApi {
         throw new Error('Undefined sudo');
     }
 
+    public wrapSudoAs(tx: ExtrinsicPayload, issuer: string): ExtrinsicPayload {
+      const ext = this._api?.tx.sudo.sudoAs({
+        'Address32': issuer
+      }, tx);
+      if (ext) return ext;
+      throw new Error('Undefined sudoAs');
+    }
+
     public async signAndSend(tx: ExtrinsicPayload, options?: Partial<SignerOptions>) {
         // ensure that we automatically increment the nonce per transaction
         return await tx.signAndSend(this.account, { nonce: -1, ...options }, (result) => {

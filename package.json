@@ -6,7 +6,8 @@
   "license": "MIT",
   "scripts": {
     "start": "ts-node-dev -r dotenv/config src/index.ts",
-    "start-sudo-mint": "ts-node-dev -r dotenv/config src/sudo-mint/index.ts",
+    "start-sudo-mint-astar": "ts-node-dev -r dotenv/config src/sudo-transfer/astar.ts",
+    "start-sudo-mint-shiden": "ts-node-dev -r dotenv/config src/sudo-transfer/shiden.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
