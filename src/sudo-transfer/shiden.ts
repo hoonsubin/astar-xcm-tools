@@ -30,7 +30,7 @@ export default async function index() {
     const amount = new BN(item.amount).sub(execute_fee);
 
     return api.buildTxCall('assets', 'mint', new BN(assetId), {
-      'Address32': beneficiary
+      'Id': beneficiary
     }, amount);
   })
   
