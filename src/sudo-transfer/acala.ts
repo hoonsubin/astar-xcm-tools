@@ -41,7 +41,7 @@ export default async function index() {
   console.log(`There are ${batchCalls.length} batch calls`);
 
   // save as file
-  await utils.saveAsJson(batchCalls, './dot-mint-batch-astar.json');
+  await utils.saveAsJson(batchCalls, './dot-mint-batch-acala.json');
 }
 
 (async () => {
