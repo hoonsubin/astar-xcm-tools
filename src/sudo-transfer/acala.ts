@@ -6,7 +6,7 @@ import BN from 'bn.js';
 import SubstrateApi from './SubstrateApi';
 
 const PUBKEY_TREASURY = '0x6d6f646c70792f74727372790000000000000000000000000000000000000000'
-const ASTAR_ASSET_ID = '340282366920938463463374607431768211455';
+const AUSD_ASSET_ID = '18446744073709551617';
 const execute_fee = new BN(4000000);
 
 export default async function index() {
@@ -22,7 +22,7 @@ export default async function index() {
   const allExtrinsics = (await utils.readJson('./extrinsics-acala.json')) as TransferItem[];
   const chunks = 100;
 
-  const assetId = ASTAR_ASSET_ID;
+  const assetId = AUSD_ASSET_ID;
 
   const batchMint = allExtrinsics.map((item) => {
     const beneficiary = item.account;
