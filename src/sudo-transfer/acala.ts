@@ -5,7 +5,7 @@ import * as utils from './utils';
 import BN from 'bn.js';
 import SubstrateApi from './SubstrateApi';
 
-const PUBKEY_TREASURY = '0x5a18b1414ba471070524f17295b98dad3a3c302001e44225909b63305f8cf27b'
+const PUBKEY_TREASURY = '0x6d6f646c70792f74727372790000000000000000000000000000000000000000'
 const ASTAR_ASSET_ID = '340282366920938463463374607431768211455';
 const execute_fee = new BN(4000000);
 
